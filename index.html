@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CyberLeech | Minecraft Mod Developer</title>
+<meta name="description" content="CyberLeech's corner of the internet: Minecraft mods, Java and Fabric.">
+<style>
+/* ============ TOKENS (edit colors here) ============ */
+:root{
+  --void:#050705; --coal:#0d110d; --stone:#161c16; --moss:#223022;
+  --lime:#4cff5c; --creep:#1fae2f; --bone:#e6e6d8; --text:#c9e0c9; --muted:#7f987f;
+  --pixel:"Press Start 2P","Minecraftia","Courier New",ui-monospace,monospace;
+  --body:ui-monospace,"Cascadia Code",Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{background:var(--void);color:var(--text);font:16px/1.7 var(--body);overflow-x:hidden;
+  background-image:linear-gradient(rgba(76,255,92,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(76,255,92,.035) 1px,transparent 1px);
+  background-size:32px 32px}
+a{color:var(--lime)}
+:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
+#spores{position:fixed;inset:0;z-index:0;pointer-events:none}
+#torch{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:0;transition:opacity .4s;
+  background:radial-gradient(circle 170px at var(--x,50%) var(--y,50%),transparent 0,rgba(0,0,0,.93) 100%)}
+body.torch #torch{opacity:1}
+main,header,footer{position:relative;z-index:1}
+
+/* ============ PIXEL PANEL (shared Minecraft-GUI look) ============ */
+.panel{background:var(--coal);border:4px solid #000;
+  box-shadow:inset 4px 4px 0 var(--moss),inset -4px -4px 0 #070a07,8px 8px 0 #000;padding:1.6rem}
+
+/* ============ NAV ============ */
+nav{position:fixed;top:0;left:0;right:0;z-index:60;background:rgba(5,7,5,.92);border-bottom:4px solid #000;
+  box-shadow:0 4px 0 var(--creep);display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.2rem}
+.logo{font:14px var(--pixel);color:var(--lime);text-decoration:none;text-shadow:2px 2px 0 #000}
+.links{display:flex;gap:.3rem;list-style:none;align-items:center}
+.links a{display:block;padding:.45rem .8rem;color:var(--text);text-decoration:none;font:10px var(--pixel);border:3px solid transparent;transition:.15s}
+.links a:hover{border-color:var(--creep);color:var(--lime);transform:translateY(-2px)}
+.burger{display:none;background:var(--stone);color:var(--lime);border:3px solid #000;font:14px var(--pixel);padding:.4rem .7rem;cursor:pointer}
+#torchBtn{background:var(--stone);color:var(--text);border:3px solid #000;font:10px var(--pixel);padding:.5rem .7rem;cursor:pointer}
+#torchBtn:hover{color:var(--lime)}
+
+/* ============ SECTIONS ============ */
+section{padding:6rem 1.2rem 4rem;max-width:1100px;margin:0 auto}
+h2{font:clamp(1.1rem,3vw,1.7rem)/1.4 var(--pixel);color:var(--bone);text-shadow:4px 4px 0 #000,0 0 18px rgba(76,255,92,.35);margin-bottom:.5rem}
+.lead{color:var(--muted);margin-bottom:2rem;max-width:62ch}
+.ground{height:20px;background:
+  repeating-linear-gradient(90deg,#3fbf3f 0 16px,#2f9a30 16px 32px) top/100% 8px no-repeat,
+  repeating-linear-gradient(90deg,#6b4a2b 0 16px,#5a3d23 16px 32px);border-top:4px solid #000;border-bottom:4px solid #000;position:relative;z-index:1}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s}
+.reveal.in{opacity:1;transform:none}
+
+/* ============ HERO ============ */
+#home{min-height:100vh;display:grid;grid-template-columns:1.2fr .8fr;gap:3rem;align-items:center;padding-top:7rem}
+.hello{font:11px var(--pixel);color:var(--creep);margin-bottom:1rem}
+h1{font:clamp(1.8rem,6vw,3.6rem)/1.15 var(--pixel);color:var(--lime);cursor:pointer;user-select:none;
+  text-shadow:4px 4px 0 #000,8px 8px 0 #0c3a12,0 0 30px rgba(76,255,92,.45);animation:flicker 6s infinite}
+h1.glitch{animation:glitch .35s 2}
+@keyframes flicker{0%,93%,100%{opacity:1}94%{opacity:.6}96%{opacity:1}97%{opacity:.4}}
+@keyframes glitch{0%{transform:translate(0)}25%{transform:translate(-5px,2px);color:#ff4c4c}50%{transform:translate(5px,-2px);color:#4cd0ff}100%{transform:none}}
+.sub{font-size:1.15rem;margin:1.4rem 0 .6rem;color:var(--bone)}
+.sub b{color:var(--lime)}
+.welcome{color:var(--muted);max-width:52ch}
+.cta{display:flex;flex-wrap:wrap;gap:1rem;margin-top:2rem;align-items:center}
+.btn{display:inline-block;font:11px var(--pixel);padding:1rem 1.3rem;color:#021402;background:var(--lime);text-decoration:none;
+  border:4px solid #000;box-shadow:inset -4px -4px 0 var(--creep),inset 4px 4px 0 #9bff9f,5px 5px 0 #000;transition:transform .1s,box-shadow .1s;cursor:pointer}
+.btn:hover{transform:translate(2px,2px);box-shadow:inset -4px -4px 0 var(--creep),inset 4px 4px 0 #9bff9f,3px 3px 0 #000}
+.btn.alt{background:var(--stone);color:var(--text);box-shadow:inset -4px -4px 0 #070a07,inset 4px 4px 0 var(--moss),5px 5px 0 #000}
+#block{width:64px;height:64px;border:4px solid #000;cursor:pointer;image-rendering:pixelated;background:
+  linear-gradient(#3fbf3f 0 14px,#6b4a2b 14px);position:relative;transition:transform .08s}
+#block:active{transform:scale(.88) rotate(-4deg)}
+#blockCount{font:10px var(--pixel);color:var(--muted)}
+
+/* ===== PERSONAL IMAGE PLACEHOLDER ===== */
+.photo-frame{position:relative;width:100%;max-width:420px;aspect-ratio:4/5;margin-inline:auto;background:var(--stone);
+  border:6px solid #000;box-shadow:inset 0 0 0 4px var(--moss),inset 0 0 60px rgba(0,0,0,.7),10px 10px 0 #000,0 0 40px rgba(76,255,92,.15);overflow:hidden}
+.photo-frame::before,.photo-frame::after{content:"";position:absolute;width:26px;height:26px;border:4px solid var(--lime);z-index:2;pointer-events:none}
+.photo-frame::before{top:10px;left:10px;border-right:0;border-bottom:0}
+.photo-frame::after{bottom:10px;right:10px;border-left:0;border-top:0}
+.photo-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+
+/* ============ EXPERIENCE ============ */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.6rem}
+.card{transition:transform .2s;position:relative}
+.card:hover{transform:translateY(-6px) rotate(-.4deg)}
+.card .ico{width:48px;height:48px;margin-bottom:1rem;border:4px solid #000;display:grid;place-items:center;font:16px var(--pixel);color:#021402;background:var(--lime)}
+.card h3{font:12px/1.6 var(--pixel);color:var(--bone);margin-bottom:.7rem}
+.card p{color:var(--muted);font-size:.95rem}
+.card.edit{border-style:dashed;border-color:var(--moss)}
+
+/* ============ ABOUT ============ */
+.about{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+.about p{margin-bottom:1rem}
+.tags{display:flex;flex-wrap:wrap;gap:.6rem}
+.tag{font:9px var(--pixel);padding:.6rem .8rem;background:var(--stone);border:3px solid #000;color:var(--lime);cursor:default;transition:.15s}
+.tag:hover{background:var(--lime);color:#021402;transform:rotate(-3deg) scale(1.06)}
+
+/* ============ MODRINTH ============ */
+.profile{display:flex;gap:1.6rem;align-items:center;flex-wrap:wrap}
+.avatar{width:110px;height:110px;flex:none;background:var(--stone);border:5px solid #000;box-shadow:inset 0 0 0 4px var(--moss);display:grid;place-items:center;font:40px var(--pixel);color:var(--lime);text-shadow:4px 4px 0 #000}
+.avatar{position:relative;overflow:hidden}.avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;background:var(--stone)}.bio{color:var(--text);margin-bottom:.4rem}
+.profile h3{font:16px var(--pixel);color:var(--bone);margin-bottom:.4rem}
+.profile .url{color:var(--muted);font-size:.85rem;word-break:break-all;margin-bottom:1rem}
+.stats{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem}
+.stat{background:var(--stone);border:3px solid #000;padding:.4rem .8rem;font-size:.8rem;color:var(--muted)}
+
+/* ============ SKELETON ============ */
+#spooky{text-align:center}
+.crypt{max-width:420px;margin:2rem auto 0;padding:1.4rem 1.4rem 1rem;position:relative;
+  background:radial-gradient(ellipse at 50% 30%,#2a1500 0,#120900 60%,#050300 100%);
+  border:6px solid #000;box-shadow:inset 0 0 0 4px #5a2d00,0 0 40px rgba(255,120,0,.25),10px 10px 0 #000}
+.crypt::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 4px)}
+.crypt img{width:100%;max-width:300px;image-rendering:pixelated;display:block;margin:0 auto;cursor:pointer}
+.pumpkin{position:absolute;font-size:2rem;animation:bob 3s ease-in-out infinite;filter:drop-shadow(0 0 10px #ff7a00)}
+.pumpkin.l{left:.8rem;bottom:.8rem}.pumpkin.r{right:.8rem;bottom:.8rem;animation-delay:-1.5s}
+@keyframes bob{50%{transform:translateY(-8px) rotate(6deg)}}
+.bubble{min-height:2.2rem;margin-top:.8rem;font:10px var(--pixel);color:#ffa23a;text-shadow:2px 2px 0 #000}
+.cap{margin-top:1rem;color:var(--muted);font-size:.85rem}
+
+/* ============ FOOTER / TOAST ============ */
+footer{text-align:center;padding:2.5rem 1rem 3rem;color:var(--muted);font-size:.85rem;background:var(--coal)}
+footer b{color:var(--lime);font:10px var(--pixel)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,120px);z-index:99;background:#000;color:var(--lime);border:3px solid var(--lime);font:10px/1.6 var(--pixel);padding:.9rem 1.2rem;transition:transform .35s;max-width:90vw;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+
+/* ============ RESPONSIVE ============ */
+@media(max-width:860px){
+  #home,.about{grid-template-columns:1fr}
+  #home{padding-top:6rem;gap:2.5rem}
+  .photo-frame{max-width:340px}
+  .burger{display:block}
+  .links{position:absolute;top:100%;left:0;right:0;flex-direction:column;background:var(--void);border-bottom:4px solid var(--creep);padding:.6rem;display:none}
+  .links.open{display:flex}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<canvas id="spores"></canvas>
+<div id="torch"></div>
+
+<!-- ============ NAV ============ -->
+<nav>
+  <a class="logo" href="#home">CyberLeech</a>
+  <button class="burger" id="burger" aria-label="Toggle menu">&#9776;</button>
+  <ul class="links" id="links">
+    <li><a href="#home">Spawn</a></li>
+    <li><a href="#skills">Toolbox</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#modrinth">Modrinth</a></li>
+    <li><a href="#spooky">Crypt</a></li>
+    <li><button id="torchBtn" aria-pressed="false">Torch: off</button></li>
+  </ul>
+</nav>
+
+<main>
+<!-- ============ 1. HERO ============ -->
+<section id="home">
+  <div>
+    <p class="hello">&gt; Welcome, traveler. You found my cave.</p>
+    <h1 id="title" title="Go on, click it.">CyberLeech</h1>
+    <p class="sub">Minecraft <b>mod developer</b> exploring Java and Fabric.</p>
+    <p class="welcome">Grab a torch and look around. I like Minecraft, PvP, and exploring the world of modding. This is my little corner of the internet.</p>
+    <div class="cta">
+      <a class="btn" href="https://modrinth.com/user/CyberLeech" target="_blank" rel="noopener">My Modrinth</a>
+      <a class="btn alt" href="#about">Meet the dev</a>
+    </div>
+    <div class="cta" style="margin-top:1.6rem">
+      <div id="block" role="button" tabindex="0" aria-label="Mine this block"></div>
+      <span id="blockCount">Blocks mined: 0</span>
+    </div>
+  </div>
+
+  <!-- ===== PERSONAL IMAGE PLACEHOLDER =====
+       HOW TO ADD YOUR IMAGE:
+       1. Save your photo in the SAME folder as this file (example: me.png).
+       2. Paste this line between the opening and closing tags of the div below:
+              <img src="me.png" alt="CyberLeech">
+       3. Save and refresh. The image fills the frame automatically (4:5 shape, cropped to fit).
+       Want a different shape? Change aspect-ratio in the .photo-frame CSS rule. -->
+  <div class="photo-frame reveal" id="photo">
+    <img src="me.png" alt="CyberLeech" onerror="this.remove()">
+  </div>
+</section>
+
+<div class="ground"></div>
+
+<!-- ============ 2. CODING EXPERIENCE ============ -->
+<section id="skills">
+  <h2 class="reveal">My Toolbox</h2>
+  <p class="lead reveal">I'm currently exploring Minecraft modding with Java and Fabric. It's my first week, and I'm learning as I go.</p>
+  <div class="grid">
+    <article class="panel card reveal"><div class="ico">J</div><h3>Java</h3><p>The programming language I'm learning to use for creating Minecraft mods.</p></article>
+    <article class="panel card reveal"><div class="ico">F</div><h3>Fabric Modding</h3><p>My modding toolkit of choice. I'm exploring how to add new things to Minecraft using Fabric.</p></article>
+    
+  </div>
+</section>
+
+<div class="ground"></div>
+
+<!-- ============ 3. ABOUT ============ -->
+<section id="about">
+  <h2 class="reveal">About Me</h2>
+  <div class="about">
+    <div class="reveal">
+      <p>Hey, I'm CyberLeech. I like Minecraft, especially PvP, and I've recently started looking into modding.</p>
+      <p>I enjoy playing other people's mods and discovering the different things people can add to the game. Now I'm exploring how to make my own.</p>
+      <p>I don't really stick to one type of mod. I like random ideas, experimenting, and seeing what I can create.</p>
+    </div>
+    <div class="panel reveal">
+      <p style="font:11px var(--pixel);color:var(--bone);margin-bottom:1rem">What I'm into</p>
+      <div class="tags"><span class="tag">Minecraft</span><span class="tag">PvP</span><span class="tag">Modding</span><span class="tag">Java</span><span class="tag">Fabric</span><span class="tag">Experimenting</span><span class="tag">Random Ideas</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="ground"></div>
+
+<!-- ============ 4. MODRINTH ============ -->
+<section id="modrinth">
+  <h2 class="reveal">Find Me on Modrinth</h2>
+  <p class="lead reveal">Want to see what I'm doing with Minecraft modding? Find my profile on Modrinth.</p>
+  <div class="panel profile reveal">
+    <!-- Avatar is loaded from Modrinth's CDN (needs internet). Offline, it falls back to the letter C. -->
+    <div class="avatar"><img src="https://cdn.modrinth.com/data/2S8s68Gb/d1073fa0a1e51f4c119094d7ef58f56cb01e6f5e_96.webp" alt="CyberLeech's Modrinth avatar" onerror="this.remove()"><span>C</span></div>
+    <div>
+      <h3>CyberLeech</h3>
+      <p class="bio">Mod maker and player dude</p>
+      <p class="url">modrinth.com/user/CyberLeech</p>
+      <!-- Update these numbers when you publish mods -->
+      <div class="stats"><span class="stat">Projects: 0</span><span class="stat">Downloads: 0</span></div>
+      <a class="btn" href="https://modrinth.com/user/CyberLeech" target="_blank" rel="noopener">Open my profile</a>
+    </div>
+  </div>
+</section>
+
+<div class="ground"></div>
+
+<!-- ============ 5. SPOOKY SKELETON ============ -->
+<section id="spooky">
+  <h2 class="reveal">The Crypt</h2>
+  <p class="lead reveal" style="margin-inline:auto">A resident of the cave. Click him, he's chatty.</p>
+  <div class="crypt reveal">
+    <span class="pumpkin l">&#127875;</span><span class="pumpkin r">&#127875;</span>
+    <!-- Animated GIF (embedded, works offline). To use your own GIF, replace the src below with "skeleton.gif" and save it beside this file. -->
+    <img id="skel" src="skeleton.gif" onerror="this.onerror=null;this.src='data:image/gif;base64,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'" alt="A pixel skeleton dancing" width="300" height="375">
+    <div class="bubble" id="bubble">*rattle rattle*</div>
+  </div>
+  <p class="cap reveal">Spooky Month Never Ends.</p>
+</section>
+</main>
+
+<footer>
+  <b>CyberLeech</b>
+  <p style="margin-top:.8rem">Built with Java dreams and too many torches.</p>
+  <p>Not affiliated with Mojang or Microsoft.</p>
+</footer>
+<div id="toast" role="status"></div>
+
+<script>
+/* ===== helpers ===== */
+const $=s=>document.querySelector(s);
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2400)};
+
+/* ===== mobile menu ===== */
+$('#burger').onclick=()=>$('#links').classList.toggle('open');
+document.querySelectorAll('#links a').forEach(a=>a.onclick=()=>$('#links').classList.remove('open'));
+
+/* ===== scroll reveal ===== */
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ===== torch mode ===== */
+const tb=$('#torchBtn');
+tb.onclick=()=>{const on=document.body.classList.toggle('torch');tb.textContent='Torch: '+(on?'on':'off');tb.setAttribute('aria-pressed',on);if(on)toast('It gets dark in here. Move your mouse.')};
+addEventListener('pointermove',e=>{const s=document.body.style;s.setProperty('--x',e.clientX+'px');s.setProperty('--y',e.clientY+'px');
+  $('#torch').style.setProperty('--x',e.clientX+'px');$('#torch').style.setProperty('--y',e.clientY+'px')});
+
+/* ===== title easter egg ===== */
+let clicks=0;
+$('#title').onclick=function(){this.classList.remove('glitch');void this.offsetWidth;this.classList.add('glitch');
+  if(++clicks===5){toast('Ssssss... Creeper? Aww man.');clicks=0}};
+
+/* ===== block mining ===== */
+let mined=0;
+const mine=()=>{mined++;$('#blockCount').textContent='Blocks mined: '+mined;
+  if(mined===10)toast('Stone age unlocked.');if(mined===50)toast('50 blocks! Diamonds soon.');if(mined===100)toast('100 blocks. Touch grass? You are mining it.')};
+$('#block').onclick=mine;
+$('#block').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();mine()}};
+
+/* ===== skeleton chatter ===== */
+const lines=['*rattle rattle*','Boo!','I lost my arrow...','Bone appetit!','Got milk? Calcium!','Watch your step.','Creepers owe me money.','*clack clack*'];
+$('#skel').onclick=()=>{$('#bubble').textContent=lines[Math.floor(Math.random()*lines.length)]};
+
+/* ===== floating green spores ===== */
+(()=>{
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  const c=$('#spores'),x=c.getContext('2d');let w,h,p=[];
+  const size=()=>{w=c.width=innerWidth;h=c.height=innerHeight};size();addEventListener('resize',size);
+  for(let i=0;i<50;i++)p.push({x:Math.random()*w,y:Math.random()*h,s:2+Math.floor(Math.random()*3)*2,v:.2+Math.random()*.5,a:.2+Math.random()*.5});
+  (function f(){x.clearRect(0,0,w,h);
+    p.forEach(o=>{o.y-=o.v;o.x+=Math.sin(o.y/40)*.3;if(o.y<-10){o.y=h+10;o.x=Math.random()*w}
+      x.fillStyle='rgba(76,255,92,'+o.a+')';x.fillRect(o.x,o.y,o.s,o.s)});
+    requestAnimationFrame(f)})();
+})();
+</script>
+</body>
+</html>
